@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 
 import { getExplorerTxUrl } from "./format";
+import { extractTxErrorMessage } from "./txErrors";
 
 // VIBE: Fire confetti energy when txs land on-chain
 export function toastTxSuccess(message: string, hash: `0x${string}`) {
@@ -15,11 +16,6 @@ export function toastTxSuccess(message: string, hash: `0x${string}`) {
 }
 
 export function toastTxError(err: unknown, fallback = "Transaction failed") {
-  const msg =
-    err instanceof Error
-      ? err.message.slice(0, 200)
-      : typeof err === "string"
-        ? err
-        : fallback;
+  const msg = extractTxErrorMessage(err, fallback);
   toast.error(msg);
 }

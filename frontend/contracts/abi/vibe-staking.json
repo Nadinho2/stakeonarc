@@ -61,6 +61,13 @@
       "outputs": [{ "name": "", "type": "address" }]
     },
     {
+      "type": "function",
+      "name": "rewardToken",
+      "stateMutability": "view",
+      "inputs": [],
+      "outputs": [{ "name": "", "type": "address" }]
+    },
+    {
       "type": "event",
       "name": "Staked",
       "inputs": [

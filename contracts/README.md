@@ -1,27 +1,54 @@
 # Contracts (Foundry)
 
-Arc staking contracts live here.
-
-## Current Contract
-
-- `src/Counter.sol` -> contains `ArcStakingVibe` (simple token staking baseline)
+Arc staking contracts live here (`VibeToken`, `VibeStaking`).
 
 ## Commands
 
 ```bash
-# VIBE: compile everything
+cd contracts
+
+# Compile
 forge build
 
-# VIBE: run tests
+# Tests
 forge test
-
-# VIBE: deploy to Arc testnet (reads env from ../.env)
-forge script script/Counter.s.sol:DeployArcStaking --rpc-url arc_testnet --broadcast
 ```
 
-## Required Env Values
+### Deploy (fresh)
 
-- `ARC_TESTNET_RPC`
-- `PRIVATE_KEY`
-- `ARC_STAKE_TOKEN`
-- `ARC_OWNER`
+```bash
+forge script script/DeployVibeStaking.s.sol:DeployVibeStaking --rpc-url arc_testnet --broadcast
+```
+
+### Lower reward rate (existing deployment)
+
+`rewardRate` is **VIBE per second for the whole pool** (same units as deploy: `100 ether` = 100 VIBE/s).
+
+1. Copy `.env.example` → `.env` and set:
+   - `PRIVATE_KEY` — must be the **VibeStaking owner** (usually deployer).
+   - `VIBE_STAKING_ADDRESS` — your deployed staking contract.
+   - `REWARD_RATE` — new rate in **wei** (18 decimals).
+
+Examples (wei per second):
+
+| You want | `REWARD_RATE` (decimal) |
+|----------|-------------------------|
+| 0.1 VIBE/s | `100000000000000000` |
+| 0.01 VIBE/s | `10000000000000000` |
+| 0.001 VIBE/s | `1000000000000000` |
+
+2. Broadcast:
+
+```bash
+forge script script/SetRewardRate.s.sol:SetRewardRate --rpc-url arc_testnet --broadcast
+```
+
+Dry-run (no chain tx): omit `--broadcast`.
+
+## Env (scripts)
+
+| Variable | Used by |
+|----------|---------|
+| `PRIVATE_KEY` | Deploy + SetRewardRate |
+| `VIBE_STAKING_ADDRESS` | SetRewardRate |
+| `REWARD_RATE` | SetRewardRate (wei/sec, whole pool) |

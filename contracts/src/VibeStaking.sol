@@ -30,6 +30,8 @@ contract VibeStaking is Ownable, ReentrancyGuard {
     event Unstaked(address indexed user, uint256 amount);
     event RewardsClaimed(address indexed user, uint256 amount);
     event RewardRateUpdated(uint256 newRate);
+    /// @notice Emitted when another contract (e.g. `VibePredictionMarket`) donates VIBE to stakers via `addGameRewards`.
+    event GameRewardsAdded(address indexed from, uint256 amount);
 
     constructor(address _stakingToken, address _rewardToken, address initialOwner) Ownable(initialOwner) {
         require(_stakingToken != address(0) && _rewardToken != address(0), "VIBE: zero token");
@@ -95,5 +97,20 @@ contract VibeStaking is Ownable, ReentrancyGuard {
         _updateReward(msg.sender);
         rewardToken.safeTransfer(msg.sender, pending);
         emit RewardsClaimed(msg.sender, pending);
+    }
+
+    /// @notice Pulls VIBE from `msg.sender` and adds it to the **reward-per-token** accumulator so **all current stakers**
+    ///         instantly share the donation (same math as streamed rewards).
+    /// @dev Called by game/market contracts (e.g. `VibePredictionMarket`) for fee shares. If `totalStaked == 0`,
+    ///      tokens still accrue to this contract and the next `stake` will call `_updateReward`, but the bonus is skipped
+    ///      until there is TVL; consider seeding stake first in production.
+    function addGameRewards(uint256 amount) external nonReentrant {
+        require(amount > 0, "VIBE: amount");
+        _updateReward(address(0));
+        rewardToken.safeTransferFrom(msg.sender, address(this), amount);
+        if (totalStaked > 0) {
+            rewardPerTokenStored += (amount * PRECISION) / totalStaked;
+        }
+        emit GameRewardsAdded(msg.sender, amount);
     }
 }

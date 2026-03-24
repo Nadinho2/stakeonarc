@@ -39,7 +39,7 @@ function NavLinks() {
       aria-label="App navigation"
     >
       {navLink("/", "Stake")}
-      {pathname !== "/" ? navLink("/admin", "Admin") : null}
+      {navLink("/markets", "Vibe Markets")}
     </nav>
   );
 }
