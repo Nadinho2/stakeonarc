@@ -1,0 +1,17 @@
+{
+  "name": "arc-staking-vibe",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Full staking dApp monorepo for Arc blockchain testnet.",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "start:frontend": "npm --prefix frontend run start",
+    "lint:frontend": "npm --prefix frontend run lint",
+    "dev:backend": "npm --prefix backend run dev",
+    "start:backend": "npm --prefix backend run start",
+    "build:contracts": "forge build --root contracts",
+    "test:contracts": "forge test --root contracts",
+    "deploy:contracts:arc-testnet": "forge script script/Counter.s.sol:DeployArcStaking --root contracts --rpc-url arc_testnet --broadcast"
+  }
+}
