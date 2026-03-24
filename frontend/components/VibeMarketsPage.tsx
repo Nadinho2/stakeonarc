@@ -198,7 +198,11 @@ export function VibeMarketsPage() {
                   <span className="text-cyan-200/90">
                     The full amount goes into the pool for winners.
                   </span>
-                )}
+                )}{" "}
+                <span className="text-zinc-500">
+                  Settlement is always on-chain via the owner signing{" "}
+                  <code className="text-zinc-400">resolveMarket</code>.
+                </span>
               </p>
               <p className="flex items-center gap-2 text-xs text-zinc-500">
                 <Zap className="h-3.5 w-3.5 text-cyan-500/80" aria-hidden />
@@ -257,6 +261,9 @@ export function VibeMarketsPage() {
                   tokenSymbol={String(symbol)}
                   feeBps={feeBps}
                   isOwner={isOwner}
+                  ownerAddress={
+                    typeof contractOwner === "string" ? contractOwner : null
+                  }
                   wrongNetwork={wrongNetwork}
                   onTxSuccess={refetchAll}
                 />
