@@ -8,6 +8,21 @@ export const vibeTokenAbi = vibeTokenArtifact.abi as Abi;
 export const vibeStakingAbi = vibeStakingArtifact.abi as Abi;
 export const vibePredictionMarketAbi = vibePredictionMarketArtifact.abi as Abi;
 
+// VIBE: Minimal ERC20 ABI for `transfer(to, amount)` so viem can encode it.
+// (This project’s `vibe-token.json` ABI does not include `transfer`.)
+export const vibeTokenTransferAbi = [
+  {
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+] as const;
+
 // VIBE: Minimal ABI for `VibeTokenClaimer` (claim + status only).
 // This avoids ABI mismatches like "Function 'transfer' not found on ABI".
 export const claimerABI = [

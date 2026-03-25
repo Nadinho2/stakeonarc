@@ -7,7 +7,12 @@ import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { simulateContract, waitForTransactionReceipt } from "wagmi/actions";
 
 import { arcTestnet, wagmiConfig } from "@/lib/web3";
-import { CONTRACT_ADDRESSES, isContractConfigured, vibeTokenAbi } from "@/lib/contracts";
+import {
+  CONTRACT_ADDRESSES,
+  isContractConfigured,
+  vibeTokenAbi,
+  vibeTokenTransferAbi,
+} from "@/lib/contracts";
 import { toastTxError, toastTxSuccess } from "@/utils/toastTx";
 import { TransactionButton } from "@/components/TransactionButton";
 import { cn } from "@/utils/cn";
@@ -77,7 +82,7 @@ export function VibeTransferSection({ tokenDecimals, tokenSymbol }: Props) {
       // VIBE: simulate first for clean revert messages.
       await simulateContract(wagmiConfig, {
         address: CONTRACT_ADDRESSES.vibeToken,
-        abi: vibeTokenAbi,
+        abi: vibeTokenTransferAbi,
         functionName: "transfer",
         args: [to, parsedAmount],
         account: address,
@@ -86,7 +91,7 @@ export function VibeTransferSection({ tokenDecimals, tokenSymbol }: Props) {
 
       const hash = await writeContractAsync({
         address: CONTRACT_ADDRESSES.vibeToken,
-        abi: vibeTokenAbi,
+        abi: vibeTokenTransferAbi,
         functionName: "transfer",
         args: [to, parsedAmount],
         account: address,
