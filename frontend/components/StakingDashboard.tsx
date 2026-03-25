@@ -20,6 +20,8 @@ import { useStakingWatchEvents } from "@/hooks/useStakingWatchEvents";
 import { formatTokenAmount } from "@/utils/format";
 
 import { ClaimRewardsSection } from "./ClaimRewardsSection";
+import { VibeTokenClaimSection } from "./VibeTokenClaimSection";
+import { VibeTransferSection } from "./VibeTransferSection";
 import { HeroSection } from "./HeroSection";
 import { StakeCard } from "./StakeCard";
 import { StatsCard } from "./StatsCard";
@@ -136,7 +138,7 @@ export function StakingDashboard() {
     },
     {
       label: "Est. APY",
-      value: "30%",
+      value: "20%",
       sub: "Illustrative target yield",
       icon: "apy" as const,
     },
@@ -209,6 +211,17 @@ export function StakingDashboard() {
           <div className="grid gap-6 lg:grid-cols-2">
             <StakeCard tokenDecimals={Number(decimals)} tokenSymbol={String(symbol)} />
             <UnstakeCard tokenDecimals={Number(decimals)} tokenSymbol={String(symbol)} />
+          </div>
+
+          <div className="pt-2">
+            <VibeTokenClaimSection tokenSymbol={String(symbol)} />
+          </div>
+
+          <div className="pt-2">
+            <VibeTransferSection
+              tokenDecimals={Number(decimals)}
+              tokenSymbol={String(symbol)}
+            />
           </div>
 
           <ClaimRewardsSection

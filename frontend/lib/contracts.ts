@@ -8,12 +8,43 @@ export const vibeTokenAbi = vibeTokenArtifact.abi as Abi;
 export const vibeStakingAbi = vibeStakingArtifact.abi as Abi;
 export const vibePredictionMarketAbi = vibePredictionMarketArtifact.abi as Abi;
 
+// VIBE: Minimal ABI for `VibeTokenClaimer` (claim + status only).
+// This avoids ABI mismatches like "Function 'transfer' not found on ABI".
+export const claimerABI = [
+  {
+    inputs: [],
+    name: "claim",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "", type: "address" }],
+    name: "hasClaimed",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "CLAIM_AMOUNT",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
+export const vibeTokenClaimerAbi = claimerABI as unknown as Abi;
+
 const ARC_TESTNET_VIBE_TOKEN: Address =
   "0xE6e047F713023316bF7feE2F68Ef3aadF5456D5F";
 const ARC_TESTNET_VIBE_STAKING: Address =
   "0xebae6fa1EeF51Ee54d1289dD7253DDC257Cd897b";
 const ARC_TESTNET_VIBE_PREDICTION_MARKET: Address =
   "0x23a3304dDD34170792920F89Ab34c2533B9E975b";
+
+const ARC_TESTNET_VIBE_TOKEN_CLAIMER: Address =
+  "0x34DeCD0Fbfd9e42632904fb400e843B61aA16414";
 
 export const VIBE_TOKEN_ADDRESS = (process.env.NEXT_PUBLIC_VIBE_TOKEN_ADDRESS ??
   ARC_TESTNET_VIBE_TOKEN) as Address;
@@ -46,6 +77,14 @@ export const vibePredictionMarket = {
   abi: vibePredictionMarketAbi,
 } as const;
 
+export const VIBE_TOKEN_CLAIMER_ADDRESS = (process.env
+  .NEXT_PUBLIC_VIBE_TOKEN_CLAIMER_ADDRESS ?? ARC_TESTNET_VIBE_TOKEN_CLAIMER) as Address;
+
+export const vibeTokenClaimer = {
+  address: VIBE_TOKEN_CLAIMER_ADDRESS,
+  abi: vibeTokenClaimerAbi,
+} as const;
+
 export function isContractConfigured(): boolean {
   const zero = "0x0000000000000000000000000000000000000000";
   return VIBE_TOKEN_ADDRESS !== zero && VIBE_STAKING_ADDRESS !== zero;
@@ -54,4 +93,9 @@ export function isContractConfigured(): boolean {
 export function isMarketsConfigured(): boolean {
   const zero = "0x0000000000000000000000000000000000000000";
   return VIBE_PREDICTION_MARKET_ADDRESS !== zero;
+}
+
+export function isClaimerConfigured(): boolean {
+  const zero = "0x0000000000000000000000000000000000000000";
+  return VIBE_TOKEN_CLAIMER_ADDRESS !== zero;
 }

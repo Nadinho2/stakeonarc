@@ -12,7 +12,7 @@ import {
   vibePredictionMarketAbi,
 } from "@/lib/contracts";
 import { vibeInput } from "@/lib/ui-classes";
-import { wagmiConfig } from "@/lib/web3";
+import { arcTestnet, wagmiConfig } from "@/lib/web3";
 import { cn } from "@/utils/cn";
 import { toastTxError, toastTxSuccess } from "@/utils/toastTx";
 
@@ -54,12 +54,15 @@ export function CreateMarketModal({ open, onClose, onCreated }: Props) {
         functionName: "createMarket",
         args: [q, BigInt(endTs)],
         account: address,
+        chainId: arcTestnet.id,
       });
       const hash = await writeContractAsync({
         address: VIBE_PREDICTION_MARKET_ADDRESS,
         abi: vibePredictionMarketAbi,
         functionName: "createMarket",
         args: [q, BigInt(endTs)],
+        account: address,
+        chainId: arcTestnet.id,
       });
       await waitForTransactionReceipt(wagmiConfig, { hash });
       toastTxSuccess("Market created", hash);

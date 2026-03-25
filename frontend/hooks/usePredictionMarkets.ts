@@ -46,6 +46,7 @@ export function usePredictionMarketOwner() {
     functionName: "owner",
     query: {
       enabled: isMarketsConfigured(),
+      refetchInterval: 15_000,
     },
   });
 }

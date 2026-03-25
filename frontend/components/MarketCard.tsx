@@ -3,6 +3,7 @@
 // VIBE: Single market card — approve VIBE, Bet YES/NO, resolve (owner), claim.
 
 import { useState } from "react";
+import { KeyRound } from "lucide-react";
 import { parseUnits } from "viem";
 import {
   useAccount,
@@ -15,12 +16,13 @@ import type { MarketWithPosition } from "@/hooks/usePredictionMarkets";
 import {
   CONTRACT_ADDRESSES,
   isContractConfigured,
+  isMarketsConfigured,
   VIBE_PREDICTION_MARKET_ADDRESS,
   vibePredictionMarketAbi,
   vibeTokenAbi,
 } from "@/lib/contracts";
 import { vibeInput } from "@/lib/ui-classes";
-import { wagmiConfig } from "@/lib/web3";
+import { arcTestnet, wagmiConfig } from "@/lib/web3";
 import { cn } from "@/utils/cn";
 import { formatTokenAmount } from "@/utils/format";
 import { toastTxError, toastTxSuccess } from "@/utils/toastTx";
@@ -85,6 +87,13 @@ export function MarketCard({
       : 0n;
 
   const { writeContractAsync } = useWriteContract();
+
+  const { data: marketOwner } = useReadContract({
+    address: VIBE_PREDICTION_MARKET_ADDRESS,
+    abi: vibePredictionMarketAbi,
+    functionName: "owner",
+    query: { enabled: isMarketsConfigured() },
+  });
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: CONTRACT_ADDRESSES.vibeToken,
@@ -177,7 +186,20 @@ export function MarketCard({
   }
 
   async function resolve(winYes: boolean) {
-    if (!address) return;
+    if (!address || !isOwner) {
+      toastTxError(
+        new Error("not owner"),
+        "Connect the contract owner wallet to resolve this market.",
+      );
+      return;
+    }
+    if (wrongNetwork) {
+      toastTxError(
+        new Error("wrong network"),
+        "Switch to Arc Testnet before resolving.",
+      );
+      return;
+    }
     setBusy(winYes ? "resolveYes" : "resolveNo");
     try {
       await simulateContract(wagmiConfig, {
@@ -186,12 +208,15 @@ export function MarketCard({
         functionName: "resolveMarket",
         args: [id, winYes],
         account: address,
+        chainId: arcTestnet.id,
       });
       const hash = await writeContractAsync({
         address: VIBE_PREDICTION_MARKET_ADDRESS,
         abi: vibePredictionMarketAbi,
         functionName: "resolveMarket",
         args: [id, winYes],
+        account: address,
+        chainId: arcTestnet.id,
       });
       await waitForTransactionReceipt(wagmiConfig, { hash });
       toastTxSuccess("Market resolved", hash);
@@ -236,10 +261,13 @@ export function MarketCard({
     status === "open" &&
     isContractConfigured();
 
+  const canResolveOnChain =
+    isOwner && isConnected && !wrongNetwork && !!address;
+
   const resolveYesDisabled =
-    market.totalYes === 0n || busy !== null;
+    market.totalYes === 0n || busy !== null || !canResolveOnChain;
   const resolveNoDisabled =
-    market.totalNo === 0n || busy !== null;
+    market.totalNo === 0n || busy !== null || !canResolveOnChain;
 
   const showClaim =
     market.resolved &&
@@ -342,6 +370,15 @@ export function MarketCard({
         </p>
       </div>
 
+      {status === "open" && isOwner ? (
+        <p className="mt-3 rounded-lg border border-fuchsia-500/20 bg-fuchsia-950/15 px-3 py-2 text-[11px] leading-relaxed text-fuchsia-100/90">
+          <span className="font-semibold text-fuchsia-200">Owner:</span> when this
+          market hits its end time, the{" "}
+          <span className="font-mono text-cyan-200">resolveMarket</span> controls
+          appear here — sign with this same wallet.
+        </p>
+      ) : null}
+
       {status === "open" ? (
         <div className="mt-4 space-y-3">
           <label className="block text-xs font-medium text-zinc-400">
@@ -397,17 +434,44 @@ export function MarketCard({
       ) : null}
 
       {status === "closed" && isOwner && totalPot > 0n ? (
-        <div className="mt-4 space-y-2 border-t border-white/[0.06] pt-4">
-          <p className="text-xs text-amber-200/90">
-            Market closed — pick the winning outcome. The winning side must have
-            liquidity.
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row">
+        <div
+          className={cn(
+            "mt-4 space-y-3 rounded-2xl border-2 border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-950/50 via-[#1a1025] to-cyan-950/30 p-4 shadow-[0_0_28px_rgba(217,70,239,0.2)] sm:p-5",
+          )}
+        >
+          <div className="flex items-start gap-3">
+            <KeyRound
+              className="mt-0.5 h-6 w-6 shrink-0 text-fuchsia-300"
+              aria-hidden
+            />
+            <div className="min-w-0 space-y-1">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-fuchsia-200">
+                Owner action — sign from your wallet
+              </p>
+              <p className="text-sm font-semibold text-white">
+                This market is closed. Choose the winning side. Your wallet will
+                send <code className="text-cyan-200">resolveMarket</code> on Arc.
+              </p>
+              <p className="text-[11px] leading-relaxed text-cyan-200/80">
+                Signing wallet:{" "}
+                <span className="font-mono text-cyan-100">
+                  {address ?? "—"}
+                </span>
+              </p>
+            </div>
+          </div>
+          {wrongNetwork ? (
+            <p className="rounded-lg border border-red-500/35 bg-red-950/40 px-3 py-2 text-[11px] font-semibold text-red-200">
+              Switch to Arc Testnet — resolution txs only work on this chain.
+            </p>
+          ) : null}
+          <div className="flex flex-col gap-3 sm:flex-row">
             <TransactionButton
               variant="cyan"
               loading={busy === "resolveYes"}
               disabled={resolveYesDisabled}
               onClick={() => void resolve(true)}
+              className="min-h-[52px] flex-1 text-base font-bold"
             >
               Resolve YES
             </TransactionButton>
@@ -416,6 +480,7 @@ export function MarketCard({
               loading={busy === "resolveNo"}
               disabled={resolveNoDisabled}
               onClick={() => void resolve(false)}
+              className="min-h-[52px] flex-1 text-base font-bold"
             >
               Resolve NO
             </TransactionButton>
@@ -425,7 +490,19 @@ export function MarketCard({
 
       {status === "closed" && !isOwner ? (
         <p className="mt-4 text-xs text-amber-200/80">
-          Market closed — waiting for the owner to resolve.
+          Market closed — waiting for the owner to resolve
+          {typeof marketOwner === "string" ? (
+            <>
+              {" "}
+              (
+              <span className="font-mono text-amber-100/90">
+                {marketOwner.slice(0, 6)}…{marketOwner.slice(-4)}
+              </span>
+              ).
+            </>
+          ) : (
+            "."
+          )}
         </p>
       ) : null}
 

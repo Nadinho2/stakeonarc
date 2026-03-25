@@ -261,9 +261,6 @@ export function VibeMarketsPage() {
                   tokenSymbol={String(symbol)}
                   feeBps={feeBps}
                   isOwner={isOwner}
-                  ownerAddress={
-                    typeof contractOwner === "string" ? contractOwner : null
-                  }
                   wrongNetwork={wrongNetwork}
                   onTxSuccess={refetchAll}
                 />

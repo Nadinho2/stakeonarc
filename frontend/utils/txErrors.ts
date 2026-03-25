@@ -70,6 +70,10 @@ function friendlyVibeMessage(raw: string): string {
     "VIBE: zero": "Invalid contract configuration.",
     "VIBE: reward token mismatch":
       "VibeToken must match VibeStaking.rewardToken — fees use rewardToken.transferFrom.",
+    // VIBE: VibeTokenClaimer (one-time claim)
+    "Already claimed": "You already claimed your one-time 100,000 VIBE.",
+    "Insufficient balance in claimer":
+      "The claimer contract is out of VIBE right now — ask the owner to deposit more.",
   };
   return map[raw] ?? raw;
 }
